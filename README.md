@@ -14,3 +14,8 @@
     -f FONT, --font FONT  set text font
     -z FONTSIZE, --fontsize FONTSIZE set text font size
     -p {bottom,top,left,right}, --position {bottom,top,left,right} set text postion, left|right|top|bottom, default is bottom
+
+# 常见问题
+1. IOError: cannot open resource
+如果出现这个错误信息，并且与ImageFont有关的。这是系统没有程序中默认字体导致，可以在命令行参数上加上指定的字体文件名字。如-f simkai.ttf。
+系统默认字体是文泉驿正黑wqy-zenhei.ttc。
