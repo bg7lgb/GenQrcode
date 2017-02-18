@@ -6,94 +6,128 @@ import argparse
 import qrcode
 from PIL import Image, ImageDraw, ImageFont
 import os
+import random
 
-qr_size = 10                # default qrcode box size 210px
-text_pos = 'bottom'         # default text position
-text_font = 'simhei.ttf'    # default text font
-text_font_size = 40         # default text font size
 
-def make_qrcode(code, txt):
-    global text_font, text_font_size, text_pos
+class GenQrcode(object):
+#    self.qr_size = 10                # default qrcode box size 210px
+#    self.text_pos = 'bottom'         # default text position
+#    self.text_font = 'simhei.ttf'    # default text font
+#    self.text_font_size = 40         # default text font size
 
-    qr = qrcode.QRCode(version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_H, 
-        box_size = qr_size,
-        border = 0)
-    qr.add_data(code)
-    qr.make(fit = True)
-    img = qr.make_image()
-    
-    w, h = img.size 
-    mode = img.mode
-
-    out_file = os.path.join(os.getcwd(),code) + ".png"
-
-    # 生成font对象
-    font = ImageFont.truetype(text_font, text_font_size)
-
-    if txt:
-        txt = txt.decode('gbk')
-        draw = ImageDraw.Draw(img)
-        text_size = draw.textsize(txt, font)
-
-        if text_pos == "bottom":
-            new_height = h + text_size[1]
-            new_width = w if w >text_size[0] else text_size[0]
-
-            print w, h
-            print new_width, new_height
-
-            new_img = Image.new(mode, (new_width, new_height), (255,255,255))
-            new_img.paste(img, ((new_width-w)/2, (new_height - text_size[1] - h)/2))
-
-            new_draw = ImageDraw.Draw(new_img)
-            x1 = (new_width - text_size[0])/2
-            y1 = (new_height - h - text_size[1])/2 + h
-
-            new_draw.text((x1, y1), txt, font=font, fill='black')
+    def __init__(self, size, pos, font, fontsize):
         
-        elif text_pos == "top":
-            new_height = h + text_size[1]
-            new_width = w if w >text_size[0] else text_size[0]
+        self.__size = 210
+        self.__pos = 'bottom'
+#        self.__font = 'simhei.ttf'
+        self.__font = 'wqy-zenhei.ttc'
+        self.__fontsize = 40
+        self.__ratio = 21            # version 1, qrcode size 21px
 
-            new_img = Image.new(mode, (new_width, new_height), (255,255,255))
-            new_img.paste(img, ((new_width - w)/2, (text_size[1]+(new_height-h-text_size[1])/2)))
+        if size:
+            self.__size = size           # default qrcode box size, 210px
+        if pos:
+            self.__pos = pos             # default text position
+        if font:
+            self.__font = font           # default text font
+        if fontsize:
+            self.__fontsize = fontsize   # default text font size 
 
-            new_draw = ImageDraw.Draw(new_img)
-            x1 = (new_width - text_size[0])/2
-            y1 = text_size[1]/2
+    def genFilename(self, code):
+        if code is None:
+            return None
 
-            new_draw.text((x1, y1), txt, font=font, fill='black')
-        elif text_pos == "left":
-            new_height = h if h > text_size[1] else text_size[1]
-            new_width = w + text_size[0]
+        out_file = os.path.join(os.getcwd(), code) + ".png"
 
-            new_img = Image.new(mode, (new_width, new_height), (255,255,255))
-            new_img.paste(img, ((new_width - text_size[0] - w)/2, (new_height - h)/2))
-            new_draw = ImageDraw.Draw(new_img)
+        if os.path.exists(out_file):
+            ext = '_' + str(random.random())[-6:]
+            out_file = os.path.join(os.getcwd(), code + ext) + ".png"
 
-            x1 = (new_width - text_size[0] - w)/2
-            y1 = (new_height -text_size[1])/2
+        return out_file
+        
+    def genQrcode(self, code, text):
+        
+        if code is None:
+            print "please input code"
+            return
 
-            new_draw.text((x1, y1), txt, font=font, fill='black')
-        else:  # right
-            new_height = h if h > text_size[1] else text_size[1]
-            new_width = w + text_size[0]
+        self.qr = qrcode.QRCode(version = 1,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,
+            box_size = self.__size/self.__ratio,
+            border = 0)
 
-            new_img = Image.new(mode, (new_width, new_height), (255,255,255))
-            new_img.paste(img, ((new_width - text_size[0] - w)/2,(new_height - h )/2))
+        self.qr.add_data(code)
+        self.qr.make(fit = True)
 
-            new_draw = ImageDraw.Draw(new_img)
-            x1 = (new_width-text_size[0]-w)/2 + w
-            y1 = (new_height - text_size[1])/2
+        # generate qrcode image
+        img = self.qr.make_image()
+        w, h = img.size
+        mode = img.mode
 
-            new_draw.text((x1, y1), txt , font=font, fill='black')
+        # generate output filename
+        outfile = self.genFilename(code)
+        
+        # generate font object
+        font = ImageFont.truetype(self.__font, self.__fontsize)
 
-        new_img.save(out_file)
+        if text:
+            # convert text to unicode
+            text = text.decode('utf-8')
+
+            draw = ImageDraw.Draw(img)
+
+            # calc text size
+            textsize = draw.textsize(text, font)
+
+            if self.__pos == 'bottom':
+                # calc new image width and height
+                newimg_height = h + textsize[1]
+                newimg_width = w if w > textsize[0] else textsize[0]
+
+                qr_x = 0
+                qr_y = 0
+
+                text_x = 0
+                text_y = h
+            elif self.__pos == 'top':
+                newimg_height = h + textsize[1]
+                newimg_width = w if w > textsize[0] else textsize[0]
+
+                qr_x = 0
+                qr_y = textsize[1]
+
+                text_x = 0
+                text_y = 0
+            elif self.__pos == 'left':
+                newimg_height = h if h > textsize[1] else textsize[1]
+                newimg_width = w + textsize[0]
+
+                qr_x = textsize[0]
+                qr_y = 0
+
+                text_x = 0
+                text_y = 0
+            else:   # position right
+                newimg_height = h if h > textsize[1] else textsize[1]
+                newimg_width = w + textsize[0]
+
+                qr_x = 0
+                qr_y = 0
+
+                text_x = w
+                text_y = 0
+
+            # create new image
+            newimg = Image.new(mode, (newimg_width, newimg_height), 255)
+            newimg.paste(img, (qr_x, qr_y))
+
+            newdraw = ImageDraw.Draw(newimg)
+            newdraw.text((text_x, text_y), text , font=font, fill='black')
+                
+            newimg.save(outfile)
+
 
 def main():
-    global text_font, text_font_size, text_pos
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--size", type=int, help="set qrcode size, in px")
     parser.add_argument("-f", "--font", help="set text font")
@@ -103,21 +137,9 @@ def main():
     parser.add_argument("txt", help="append text")
     args = parser.parse_args()
 
-    if args.size:
-        # qrcode version 1, qrcode size is 21px
-        qr_size = args.size/21
-        print qr_size
-  
-    if args.font:
-        text_font = args.font
-
-    if args.fontsize:
-        text_font_size = args.fontsize
-
-    if args.position:
-        text_pos = args.position
-
-    make_qrcode(args.code, args.txt)
-
+    genQr = GenQrcode(size =args.size, pos=args.position,
+        font=args.font, fontsize=args.fontsize)
+    genQr.genQrcode(args.code, args.txt)
+    
 if __name__ == '__main__':
     main()
