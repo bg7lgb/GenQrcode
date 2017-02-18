@@ -1,2 +1,2 @@
 # GenQrcode
-Generates a QR code, add appends text information.
+写这个小工具，主要是前段时间项目需要输出大量二维码，用程序输出的二维码，不带可见的文字信息。所以才写了这个小工具，在输出二维码的同时，可以在码的周围附加上指定的文字内容。
