@@ -7,6 +7,7 @@ import qrcode
 from PIL import Image, ImageDraw, ImageFont
 import os
 import random
+import chardet
 
 
 class GenQrcode(object):
@@ -72,7 +73,8 @@ class GenQrcode(object):
 
         if text:
             # convert text to unicode
-            text = text.decode('utf-8')
+#            text = text.decode('utf-8')
+            text = text.decode(chardet.detect(text)['encoding'])
 
             draw = ImageDraw.Draw(img)
 
