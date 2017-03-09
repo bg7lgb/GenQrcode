@@ -5,7 +5,7 @@
 import argparse
 import qrcode
 from PIL import Image, ImageDraw, ImageFont
-import os
+import os,sys
 import random
 import chardet
 
@@ -20,10 +20,19 @@ class GenQrcode(object):
         
         self.__size = 210
         self.__pos = 'bottom'
-#        self.__font = 'simhei.ttf'
-        self.__font = 'wqy-zenhei.ttc'
+
+        # set default font
+        if sys.platform == 'linux2':
+            self.__font = 'wqy-zenhei.ttc'
+        elif sys.platform == 'win32':
+            self.__font = 'simhei.ttf'
+        else:
+            self.__font = 'simhei.ttf'
+
         self.__fontsize = 40
         self.__ratio = 21            # version 1, qrcode size 21px
+        
+        self.__encoding = sys.getfilesystemencoding()
 
         if size:
             self.__size = size           # default qrcode box size, 210px
@@ -74,7 +83,8 @@ class GenQrcode(object):
         if text:
             # convert text to unicode
 #            text = text.decode('utf-8')
-            text = text.decode(chardet.detect(text)['encoding'])
+#            text = text.decode(chardet.detect(text)['encoding'])
+            text = text.decode(self.__encoding)
 
             draw = ImageDraw.Draw(img)
 
