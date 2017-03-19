@@ -7,7 +7,7 @@ import qrcode
 from PIL import Image, ImageDraw, ImageFont
 import os,sys
 import random
-import chardet
+#import chardet
 
 
 class GenQrcode(object):
@@ -82,8 +82,6 @@ class GenQrcode(object):
 
         if text:
             # convert text to unicode
-#            text = text.decode('utf-8')
-#            text = text.decode(chardet.detect(text)['encoding'])
             text = text.decode(self.__encoding)
 
             draw = ImageDraw.Draw(img)
@@ -96,38 +94,69 @@ class GenQrcode(object):
                 newimg_height = h + textsize[1]
                 newimg_width = w if w > textsize[0] else textsize[0]
 
-                qr_x = 0
+                # make the qrcode center align.
+                if newimg_width > w:
+                    qr_x = (newimg_width - w) / 2
+                else:
+                    qr_x = 0
                 qr_y = 0
 
-                text_x = 0
+                # make the text center align.
+                if newimg_width > textsize[0]:
+                    text_x = (newimg_width - textsize[0]) / 2
+                else:
+                    text_x = 0
                 text_y = h
+
             elif self.__pos == 'top':
                 newimg_height = h + textsize[1]
                 newimg_width = w if w > textsize[0] else textsize[0]
 
-                qr_x = 0
+                # make the qrcode center align.
+                if newimg_width > w:
+                    qr_x = (newimg_width - w) / 2
+                else:
+                    qr_x = 0
+ 
                 qr_y = textsize[1]
 
-                text_x = 0
+                # make the text center align.
+                if newimg_width > textsize[0]:
+                    text_x = (newimg_width - textsize[0]) / 2
+                else:
+                    text_x = 0
                 text_y = 0
+
             elif self.__pos == 'left':
                 newimg_height = h if h > textsize[1] else textsize[1]
                 newimg_width = w + textsize[0]
 
                 qr_x = textsize[0]
-                qr_y = 0
+                if newimg_height > h:
+                    qr_y = (newimg_height - h) / 2
+                else:
+                    qr_y = 0
 
                 text_x = 0
-                text_y = 0
+                if newimg_height > textsize[1]:
+                    text_y = (newimg_height - textsize[1]) / 2
+                else:
+                    text_y = 0
             else:   # position right
                 newimg_height = h if h > textsize[1] else textsize[1]
                 newimg_width = w + textsize[0]
 
                 qr_x = 0
-                qr_y = 0
+                if newimg_height > h:
+                    qr_y = (newimg_height - h) / 2
+                else:
+                    qr_y = 0
 
                 text_x = w
-                text_y = 0
+                if newimg_height > textsize[1]:
+                    text_y = (newimg_height - textsize[1]) / 2
+                else:
+                    text_y = 0
 
             # create new image
             newimg = Image.new(mode, (newimg_width, newimg_height), 255)
